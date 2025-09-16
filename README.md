@@ -1,6 +1,6 @@
 # DXC Zig Wrapper
 
-A Zig 0.14.0 library that wraps the DirectXShaderCompiler (DXC) to compile HLSL shaders to SPIR-V.
+A Zig 0.15.1 library that wraps the DirectXShaderCompiler (DXC) to compile HLSL shaders to SPIR-V.
 
 ## Prerequisites
 
