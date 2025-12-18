@@ -21,7 +21,8 @@ pub fn build(b: *std.Build) void {
     });
     dxc_module.link_libcpp = true;
 
-    if (true) {
+    //Disabled cause it causing a rebuild everytime
+    if (false) {
         const dxc = b.dependency("dxc", .{
             .target = target,
             .optimize = optimize,

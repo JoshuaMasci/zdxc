@@ -43,12 +43,10 @@ pub const Compiler = struct {
 
     pub fn init() CompileError!Compiler {
         const ctx = dxc_create_compiler() orelse return CompileError.InitializationFailed;
-        std.log.info("CTX: {}", .{ctx});
         return Compiler{ .ctx = ctx };
     }
 
     pub fn deinit(self: Compiler) void {
-        std.log.info("CTX: {}", .{self.ctx});
         dxc_destroy_compiler(self.ctx);
     }
 

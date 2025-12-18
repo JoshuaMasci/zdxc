@@ -65,7 +65,8 @@ void dxc_destroy_compiler(DxcCompiler *ctx) {
       ctx->utils->Release();
     }
     if (ctx->compiler) {
-      ctx->compiler->Release();
+      // Disable for now, cause its causing a crash for some reason
+      // ctx->compiler->Release();
     }
     delete ctx;
   }
