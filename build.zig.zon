@@ -3,7 +3,12 @@
     .version = "0.1.0",
     .fingerprint = 0x59453f0445d8fcc2,
     .minimum_zig_version = "0.14.0",
-    .dependencies = .{},
+    .dependencies = .{
+        .dxc = .{
+            .url = "git+https://github.com/vinterbell/dxc-build.git#f8f49e18f47547553fb138073a49e9fa34b36b26",
+            .hash = "dxc-1.8.2505-siU2n9P3FQIcGhd9TWtlBmx-jSocqxjpvH2LdnOhQsDZ",
+        },
+    },
     .paths = .{
         "build.zig",
         "build.zig.zon",

@@ -1,4 +1,6 @@
+#include <cassert>
 #include <codecvt>
+#include <cstdio>
 #include <cstring>
 #include <dxc/dxcapi.h>
 #include <locale>
@@ -54,17 +56,30 @@ DxcCompiler *dxc_create_compiler() {
   return ctx;
 }
 
-void dxc_add_include_path(DxcCompiler *ctx, const char *include_path) {
-    std::wstring w_include_path = stringToWstring(std::string(include_path));
-    ctx->include_directories.push_back(w_include_path);
+void dxc_destroy_compiler(DxcCompiler *ctx) {
+  if (ctx != nullptr) {
+    if (ctx->include_handler) {
+      ctx->include_handler->Release();
+    }
+    if (ctx->utils) {
+      ctx->utils->Release();
+    }
+    if (ctx->compiler) {
+      ctx->compiler->Release();
+    }
+    delete ctx;
+  }
 }
 
-DxcCompileResult dxc_compile_hlsl_to_spirv(DxcCompiler *ctx,
-                                           const char *source_name,
-                                           const char *source_code,
-                                           size_t source_size,
-                                           const char *entry_point,
-                                           const char *target_profile) {
+void dxc_add_include_path(DxcCompiler *ctx, const char *include_path) {
+  std::wstring w_include_path = stringToWstring(std::string(include_path));
+  ctx->include_directories.push_back(w_include_path);
+}
+
+DxcCompileResult
+dxc_compile_hlsl_to_spirv(DxcCompiler *ctx, const char *source_name,
+                          const char *source_code, size_t source_size,
+                          const char *entry_point, const char *target_profile) {
   DxcCompileResult result = {0};
 
   if (!ctx || !source_code || !entry_point || !target_profile) {
@@ -81,12 +96,12 @@ DxcCompileResult dxc_compile_hlsl_to_spirv(DxcCompiler *ctx,
     return result;
   }
 
-
   std::wstring w_source_name = stringToWstring(std::string(source_name));
   std::wstring w_entry_point = stringToWstring(std::string(entry_point));
   std::wstring w_target_profile = stringToWstring(std::string(target_profile));
 
   std::vector<LPCWSTR> arguments = {
+      w_source_name.c_str(),         // sets the filename
       L"-spirv",                     // Generate SPIR-V
       L"-fspv-target-env=vulkan1.3", // Target Vulkan 1.3
       L"-Zi",                        // Debug info
@@ -98,9 +113,9 @@ DxcCompileResult dxc_compile_hlsl_to_spirv(DxcCompiler *ctx,
   arguments.push_back(L"-T");
   arguments.push_back(w_target_profile.c_str());
 
-  for (const auto& path : ctx->include_directories) {
-      arguments.push_back(L"-I");
-      arguments.push_back(path.c_str());
+  for (const auto &path : ctx->include_directories) {
+    arguments.push_back(L"-I");
+    arguments.push_back(path.c_str());
   }
 
   DxcBuffer source_buffer = {};
@@ -172,7 +187,7 @@ DxcCompileResult dxc_compile_hlsl_to_spirv(DxcCompiler *ctx,
 }
 
 void dxc_free_result(DxcCompileResult *result) {
-  if (result) {
+  if (result != nullptr) {
     if (result->data) {
       free(result->data);
       result->data = nullptr;
@@ -183,21 +198,6 @@ void dxc_free_result(DxcCompileResult *result) {
     }
     result->size = 0;
     result->success = 0;
-  }
-}
-
-void dxc_destroy_compiler(DxcCompiler *ctx) {
-  if (ctx) {
-    if (ctx->include_handler) {
-      ctx->include_handler->Release();
-    }
-    if (ctx->utils) {
-      ctx->utils->Release();
-    }
-    if (ctx->compiler) {
-      ctx->compiler->Release();
-    }
-    delete ctx;
   }
 }
 

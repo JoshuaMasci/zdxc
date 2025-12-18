@@ -48,24 +48,19 @@ pub fn main() !void {
 
     std.log.info("Compiling shaders with DXC...", .{});
 
+    var compiler = try dxc.Compiler.init();
+    defer compiler.deinit();
+
     std.log.info("Compiling vertex shader...", .{});
-    const vs_result = dxc.compileVertexShader(
-        allocator,
-        vertex_shader_source,
-        "main",
-    ) catch |err| {
+    const vs_result = compiler.compileHlslToSpirv(allocator, "vertex.hlsl", vertex_shader_source, "main", "vs_6_0") catch |err| {
         std.log.err("Failed to compile vertex shader: {}", .{err});
-        return;
+        return err;
     };
     defer vs_result.deinit();
     std.log.info("✓ Vertex shader compiled successfully ({} bytes of SPIR-V)", .{vs_result.spirv_data.len});
 
     std.log.info("Compiling pixel shader...", .{});
-    const ps_result = dxc.compilePixelShader(
-        allocator,
-        pixel_shader_source,
-        "main",
-    ) catch |err| {
+    const ps_result = compiler.compileHlslToSpirv(allocator, "fragment.hlsl", pixel_shader_source, "main", "ps_6_0") catch |err| {
         std.log.err("Failed to compile pixel shader: {}", .{err});
         return;
     };
@@ -73,11 +68,7 @@ pub fn main() !void {
     std.log.info("✓ Pixel shader compiled successfully ({} bytes of SPIR-V)", .{ps_result.spirv_data.len});
 
     std.log.info("Compiling compute shader...", .{});
-    const cs_result = dxc.compileComputeShader(
-        allocator,
-        compute_shader_source,
-        "main",
-    ) catch |err| {
+    const cs_result = compiler.compileHlslToSpirv(allocator, "compute.hlsl", compute_shader_source, "main", "cs_6_0") catch |err| {
         std.log.err("Failed to compile compute shader: {}", .{err});
         return;
     };
@@ -93,17 +84,4 @@ pub fn main() !void {
     std.log.info("  - vertex_shader.spv ({} bytes)", .{vs_result.spirv_data.len});
     std.log.info("  - pixel_shader.spv ({} bytes)", .{ps_result.spirv_data.len});
     std.log.info("  - compute_shader.spv ({} bytes)", .{cs_result.spirv_data.len});
-
-    std.log.info("\nUsing lower-level API...", .{});
-    const compiler = try dxc.Compiler.init();
-    defer compiler.deinit();
-
-    const custom_result = try compiler.compileHlslToSpirv(
-        allocator,
-        "float4 main() : SV_TARGET { return float4(1.0, 1.0, 0.0, 1.0); }",
-        "main",
-        "ps_6_0",
-    );
-    defer custom_result.deinit();
-    std.log.info("✓ Custom compilation successful ({} bytes)", .{custom_result.spirv_data.len});
 }

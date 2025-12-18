@@ -19,10 +19,19 @@ pub fn build(b: *std.Build) void {
             "-fms-extensions",
         },
     });
-
-    dxc_module.linkSystemLibrary("dxcompiler", .{});
     dxc_module.link_libcpp = true;
 
+    if (true) {
+        const dxc = b.dependency("dxc", .{
+            .target = target,
+            .optimize = optimize,
+        });
+        dxc_module.addImport("dxc", dxc.module("dxcompiler_root"));
+    } else {
+        dxc_module.linkSystemLibrary("dxcompiler", .{});
+    }
+
+    // Tests
     {
         const tests = b.addTest(.{
             .root_module = dxc_module,
